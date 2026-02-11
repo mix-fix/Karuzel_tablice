@@ -459,6 +459,47 @@ body.dark .board-tile.RB { background: #d63c76; color: black; }
     box-shadow: 0 0 15px yellow;
 }
 
+.control-panel {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.norm-block,
+.speed-block,
+.search-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+}
+
+#norm {
+    width: 80px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid #aaa;
+}
+
+#search-value {
+    width: 120px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    border: 2px solid #6666ff;
+    text-align: center;
+    font-weight: bold;
+}
+
+#search-value:focus {
+    outline: none;
+    border-color: #00bcd4;
+    box-shadow: 0 0 8px #00bcd4;
+}
+
+
 
 </style>
 </head>
@@ -515,16 +556,24 @@ body.dark .board-tile.RB { background: #d63c76; color: black; }
         </div>
     </div>
 <div style="margin-top:10px;">
-<div style="margin-top:10px;">
-    <label>🔎 Szukaj value:</label>
-    <input type="text" id="search-value" placeholder="np. 11" 
-           style="width:100px; padding:4px;">
+<div class="control-panel">
+    
+    <div class="norm-block">
+        <label for="norm"><?= htmlspecialchars($LANG['norm_label']) ?></label>
+        <input type="number" id="norm" min="1" value="100" />
+    </div>
+
+    <div class="speed-block">
+        <span id="speed-info"><?= htmlspecialchars($LANG['speed_label']) ?>: 0 pcs/h</span>
+    </div>
+
+    <div class="search-block">
+        <label for="search-value">🔎</label>
+        <input type="text" id="search-value" placeholder="Znajdź deskę..." />
+    </div>
+
 </div>
 
-    <label for="norm" id="norm-label"><?= htmlspecialchars($LANG['norm_label']) ?></label>
-    <input type="number" id="norm" min="1" value="100" style="width:80px;" />
-    <span id="speed-info"><?= htmlspecialchars($LANG['speed_label']) ?>: 0 pcs/h</span>
-</div>
 
     <pre id="stats" aria-live="polite"></pre>
     <div id="board-visual"></div>
@@ -533,6 +582,9 @@ body.dark .board-tile.RB { background: #d63c76; color: black; }
 
 
 <script>
+
+let breakOverlayEnabled = true;   // ← ВОТ СЮДА
+let manualHideBreak = false;   
 
 const tables = {
     "1RS": "R31B-82",
@@ -826,7 +878,7 @@ function updateSpeed() {
         : 0;
 
     document.getElementById("speed-info").textContent =
-        `${SPEED_LABEL}: ${speed.toFixed(1)} szt./godz | etap ${stage.stage}`;
+        `${SPEED_LABEL}: ${speed.toFixed(1)} |  `;
 }
 
 
@@ -1491,29 +1543,41 @@ function closeAdminPanel() {
 }
 
 window.addEventListener("load", () => {
-    // всегда скрываем модалки при загрузке страницы
-    document.getElementById("admin-login-modal").style.display = "none";
-    document.getElementById("admin-panel").style.display = "none";
-	const saved = localStorage.getItem("breakOverlayEnabled");
+    const saved = localStorage.getItem("breakOverlayEnabled");
+
     if (saved !== null) {
         breakOverlayEnabled = saved === "1";
-        document.getElementById("break-toggle").checked = breakOverlayEnabled;
     }
-    updateBreakOverlay();
+
+    updateBreakOverlay(); // проверка сразу при загрузке
 });
 
-const savedPercents = localStorage.getItem("stagePercents");
-if (savedPercents) {
-    stagePercents = JSON.parse(savedPercents);
 
-    document.getElementById("s1_e1").value = stagePercents.shift1[0] * 100;
-    document.getElementById("s1_e2").value = stagePercents.shift1[1] * 100;
-    document.getElementById("s1_e3").value = stagePercents.shift1[2] * 100;
+window.addEventListener("DOMContentLoaded", () => {
 
-    document.getElementById("s2_e1").value = stagePercents.shift2[0] * 100;
-    document.getElementById("s2_e2").value = stagePercents.shift2[1] * 100;
-    document.getElementById("s2_e3").value = stagePercents.shift2[2] * 100;
-}
+    const savedPercents = localStorage.getItem("stagePercents");
+
+    if (savedPercents) {
+        stagePercents = JSON.parse(savedPercents);
+
+        const s1e1 = document.getElementById("s1_e1");
+        const s1e2 = document.getElementById("s1_e2");
+        const s1e3 = document.getElementById("s1_e3");
+        const s2e1 = document.getElementById("s2_e1");
+        const s2e2 = document.getElementById("s2_e2");
+        const s2e3 = document.getElementById("s2_e3");
+
+        if (s1e1) s1e1.value = stagePercents.shift1[0] * 100;
+        if (s1e2) s1e2.value = stagePercents.shift1[1] * 100;
+        if (s1e3) s1e3.value = stagePercents.shift1[2] * 100;
+
+        if (s2e1) s2e1.value = stagePercents.shift2[0] * 100;
+        if (s2e2) s2e2.value = stagePercents.shift2[1] * 100;
+        if (s2e3) s2e3.value = stagePercents.shift2[2] * 100;
+    }
+
+});
+
 
 let autosaveTimes = []; // список часов:минут
 
@@ -1600,11 +1664,14 @@ function autosaveToArchive() {
     });
 }
 
+
 function toggleBreakOverlay() {
     breakOverlayEnabled = document.getElementById("break-toggle").checked;
     localStorage.setItem("breakOverlayEnabled", breakOverlayEnabled ? "1" : "0");
     updateBreakOverlay();
 }
+
+
 
 function isBreakTime() {
     const now = new Date();
@@ -1620,6 +1687,17 @@ function isBreakTime() {
     ];
 
     return breaks.some(([start, end]) => current >= start && current < end);
+}
+
+function updateBreakOverlay() {
+    const overlay = document.getElementById("break-overlay");
+    if (!overlay) return;
+
+    if (breakOverlayEnabled && isBreakTime()) {
+        overlay.style.display = "flex";
+    } else {
+        overlay.style.display = "none";
+    }
 }
 
 function getShiftStage(now) {
@@ -1640,26 +1718,24 @@ function getShiftStage(now) {
     return null;
 }
 
+window.addEventListener("DOMContentLoaded", () => {
 
+    const saved = localStorage.getItem("breakOverlayEnabled");
 
-
-
-
-function updateBreakOverlay() {
-    const overlay = document.getElementById("break-overlay");
-    if (!overlay) return;
-
-    if (breakOverlayEnabled && isBreakTime()) {
-        overlay.style.display = "flex";  // показать
-    } else {
-        overlay.style.display = "none";  // скрыть
+    if (saved !== null) {
+        breakOverlayEnabled = saved === "1";
     }
-}
 
+    const toggle = document.getElementById("break-toggle");
+    if (toggle) {
+        toggle.checked = breakOverlayEnabled;
+    }
 
-// проверять каждую минуту
-setInterval(updateBreakOverlay, 1000 * 30);
-updateBreakOverlay();
+    updateBreakOverlay();
+    setInterval(updateBreakOverlay, 30000);
+
+});
+
 
 
 
@@ -1690,7 +1766,8 @@ updateBreakOverlay();
 </div>
 <!-- Модальное окно для ввода пароля -->
 <div id="admin-login-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh;
-    background:rgba(0,0,0,0.8); color:white; z-index:3000; display:flex; align-items:center; justify-content:center;">
+    background:rgba(0,0,0,0.8); color:white; z-index:3000; align-items:center; justify-content:center;">
+
     <div style="background:#222; padding:20px; border-radius:8px; min-width:300px; text-align:center;">
         <h3>🔑 Admin Login</h3>
         <input type="password" id="admin-password" placeholder="Enter password" style="padding:6px; width:90%;" />
