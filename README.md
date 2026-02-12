@@ -162,13 +162,19 @@ body {
             align-items: center;
         }
         header h1 {
-            margin: 0;
-            font-weight: normal;
-            font-size: 2em;
-            text-align: center;
-        }
+    font-size: 32px;
+	 margin-top: -20px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+body.dark header h1 {
+    color: #eaeaea;
+    text-shadow: 0 0 8px rgba(0,255,157,0.6);
+}
+
+
         #clock {
-    margin-top: -5px;
+    margin-top: -30px;
     font-size: 70px;
     font-weight: 900;
     letter-spacing: 2px;
@@ -239,14 +245,15 @@ button:hover {
     margin-top: 5px;
     background: rgba(255,255,255,0.7);
     backdrop-filter: blur(12px);
-    padding: 25px;
+    padding: 5px;
     width: 100%;
     max-width: 180%;
     height: 500px;
     overflow-y: auto;
     white-space: pre-wrap;
-    font-size: 42px;
-    border-radius: 18px;
+    font-size: 45px;
+	font-weight: 900;
+    border-radius: 19px;
     border: 1px solid rgba(0,0,0,0.1);
     box-shadow: 0 15px 40px rgba(0,0,0,0.08);
 }
@@ -666,7 +673,7 @@ body.dark .language-select option {
 
         <div class="search-block">
             <label for="search-value">🔎</label>
-            <input type="text" id="search-value" placeholder="Znajdź deskę..." />
+            <input type="text" id="search-value" placeholder="Znaleźć deskę..." />
         </div>
 
     </div>
