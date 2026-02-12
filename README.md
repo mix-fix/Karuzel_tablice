@@ -689,7 +689,7 @@ body.dark .language-select option {
 
     let breakOverlayEnabled = true;   // ← ВОТ СЮДА
     let manualHideBreak = false;   
-
+    let lastBreakCheck = 0;
     const tables = {
         "1RS": "R31B-82",
         "2LS": "59-81",
@@ -1403,6 +1403,7 @@ body.dark .language-select option {
         const timeStr = now.toLocaleTimeString('pl-PL', { hour12: false });
 
         document.getElementById("clock").textContent = timeStr;
+		
 
         // Смена
         const totalMinutes = parseInt(hours) * 60 + parseInt(minutes);
@@ -1417,6 +1418,13 @@ body.dark .language-select option {
         }
 
         document.getElementById("shift-indicator").textContent = shiftText;
+		const currentTime = Date.now();
+    if (currentTime - lastBreakCheck >= 30000) {
+        updateBreakOverlay();
+        lastBreakCheck = currentTime;
+    }
+}
+		 updateBreakOverlay();
 
         // Ключ минуты, например "06:30"
         const currentTimeKey = `${hours}:${minutes}`;
@@ -1836,8 +1844,7 @@ body.dark .language-select option {
         }
 
         updateBreakOverlay();
-        setInterval(updateBreakOverlay, 30000);
-
+        
     });
 
 
